@@ -1,6 +1,9 @@
 import os
 import requests
 import re
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def download_picture(pic_path, pic_name = None):
@@ -41,8 +44,20 @@ def get_xkcd_comics_info(issue_id = None):
         api_path = 'https://xkcd.com/info.0.json'
 
     response = requests.get(api_path).json()
-
     return response
+
+
+def get_list_of_group():
+    method_name = 'groups.get'
+    token = os.getenv("TOKEN")
+    client_id = os.getenv("client_id")
+    vk_version = '5.95'
+    parameters = f'user_id={client_id}'
+
+    url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
+    print(url_request)
+    response = requests.get(url_request)
+    print(response.json())
 
 
 def main():
@@ -50,8 +65,11 @@ def main():
     comics_info = get_xkcd_comics_info()
     comics_url = comics_info['img']
     comics_alt = comics_info['alt']
-    print(comics_alt)
-    download_picture(comics_url)
+    client_id = os.getenv("client_id")
+    print(client_id)
+    get_list_of_group()
+
+    #download_picture(comics_url)
 
 
 if __name__ == '__main__':
