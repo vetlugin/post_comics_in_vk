@@ -6,7 +6,26 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def download_picture(img_url, img_dir = '.', img_name = None):
+def get_xkcd_comics_info(issue_id = None):
+    '''
+    Function get url of issue of xkcd comics.
+    If issue_id is not None than function return url of issue_id comics.
+    If issue_id is None than function return url of last comics.
+
+    Keywords arguments:
+    issue_id -- id of issue xkcd comics
+    '''
+
+    if issue_id is not None:
+        api_path = 'https://xkcd.com/{}/info.0.json'.format(issue_id)
+    else:
+        api_path = 'https://xkcd.com/info.0.json'
+
+    response = requests.get(api_path).json()
+    return response
+
+
+def download_picture(img_url, img_dir = '.'):
     '''
     Function download pictures from url to local directory.
     Create directory if it no exist.
@@ -29,23 +48,17 @@ def download_picture(img_url, img_dir = '.', img_name = None):
     return img_local_full_path
 
 
-def get_xkcd_comics_info(issue_id = None):
+def ask_vk_api(method_name, parameters):
     '''
-    Function get url of issue of xkcd comics.
-    If issue_id is not None than function return url of issue_id comics.
-    If issue_id is None than function return url of last comics.
-
-    Keywords arguments:
-    issue_id -- id of issue xkcd comics
+    Ask VK's API used methodname
     '''
+    token = os.getenv("TOKEN")
+    vk_version = '5.95'
 
-    if issue_id is not None:
-        api_path = 'https://xkcd.com/{}/info.0.json'.format(issue_id)
-    else:
-        api_path = 'https://xkcd.com/info.0.json'
-
-    response = requests.get(api_path).json()
-    return response
+    url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
+    #print(url_request)
+    response = requests.get(url_request)
+    return response.json()
 
 
 def get_address_upload_photos():
@@ -64,18 +77,19 @@ def get_address_upload_photos():
 
 
 def upload_photo_to_server(url, img_path):
+    '''
+    Upload photo to server.
+    '''
+    open_file = open(img_path, 'rb')
+    files = {'file': open_file}
 
-    img_name = os.path.basename(img_path)
-
-    image_file_descriptor = open(img_name, 'rb')
-    files = {'file': image_file_descriptor}
     response = requests.post(url, files=files)
-    image_file_descriptor.close()
+    open_file.close()
 
     return response.json()
 
 
-def save_wall_photo(photo_on_server, caption):
+def save_wall_photo(photo_on_server):
     '''
     __
     '''
@@ -83,28 +97,60 @@ def save_wall_photo(photo_on_server, caption):
     token = os.getenv("TOKEN")
     vk_version = '5.95'
     group_id='181623583'
+    photo = photo_on_server['photo']
     hash = photo_on_server['hash']
     server = photo_on_server['server']
-    photo = photo_on_server['photo']
-    parameters = f'group_id={group_id}&photo={photo}&hash={hash}&server={server}&caption={caption}'
+    parameters = f'group_id={group_id}&photo={photo}&hash={hash}&server={server}'
 
     url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
+    #print(url_request)
+    response = requests.post(url_request)
+    return response.json()
+
+
+def post_wall_photo(owner_id, media_id, message):
+    '''
+    __
+    '''
+    method_name = 'wall.post'
+    token = os.getenv("TOKEN")
+    vk_version = '5.95'
+    group_id='181623583'
+
+    attachments = f"<photo><{group_id}>_<{media_id}>"
+
+    parameters = f'group_id={group_id}&owner_id=-{group_id}&attachments={attachments}&message={message}'
+    url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
+    print(attachments)
+    print(parameters)
     print(url_request)
-    response = requests.get(url_request)
+    response = requests.post(url_request)
     return response.json()
 
 
 def main():
-    print('*********')
+    print('Script started.')
+
+    #Get information about last issue comics
     comics_info = get_xkcd_comics_info()
     comics_url = comics_info['img']
     comics_alt = comics_info['alt']
-    user_id = os.getenv("user_id")
 
-    download_picture(comics_url)
-    photos_upload_url = get_address_upload_photos()
-    photo_on_server = upload_photo_to_server(photos_upload_url, comics_url)
-    print(save_wall_photo(photo_on_server, comics_alt))
+    # Download image to file with img_local_full_path address
+    img_local_full_path = download_picture(comics_url)
+
+    # Get url on server to upload picture
+    img_upload_url = get_address_upload_photos()
+
+    # Upload picture to img_upload_url from img_local_full_path
+    photo_on_server = upload_photo_to_server(img_upload_url, img_local_full_path)
+
+    #Post uploaded pictures on the wall of the group
+    save_wall_response = save_wall_photo(photo_on_server)
+
+    media_id = save_wall_response['response'][0]['id']
+    owner_id = save_wall_response['response'][0]['owner_id']
+    post_wall_photo(owner_id, media_id, comics_alt)
 
 if __name__ == '__main__':
     main()
