@@ -117,13 +117,29 @@ def post_wall_photo(owner_id, media_id, message):
     vk_version = '5.95'
     group_id='181623583'
 
-    attachments = f"<photo><{group_id}>_<{media_id}>"
+    attachments = f"photo{owner_id}_{media_id}"
 
     parameters = f'group_id={group_id}&owner_id=-{group_id}&attachments={attachments}&message={message}'
     url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
     print(attachments)
     print(parameters)
     print(url_request)
+    response = requests.post(url_request)
+    return response.json()
+
+
+def create_album(title):
+    '''
+    __
+    '''
+    method_name = 'photos.createAlbum'
+    token = os.getenv("TOKEN")
+    vk_version = '5.95'
+    group_id='181623583'
+
+    parameters = f'title={title}&group_id={group_id}'
+    url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
+
     response = requests.post(url_request)
     return response.json()
 
@@ -151,6 +167,7 @@ def main():
     media_id = save_wall_response['response'][0]['id']
     owner_id = save_wall_response['response'][0]['owner_id']
     post_wall_photo(owner_id, media_id, comics_alt)
+    #create_album('urrra!')
 
 if __name__ == '__main__':
     main()
