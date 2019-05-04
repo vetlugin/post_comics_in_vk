@@ -1,6 +1,5 @@
 import os
 import requests
-import re
 import random
 from dotenv import load_dotenv
 
@@ -50,19 +49,6 @@ def download_picture(img_url, img_dir = '.'):
     return img_local_full_path
 
 
-def ask_vk_api(method_name, parameters):
-    '''
-    Ask VK's API used methodname
-    '''
-    token = os.getenv("TOKEN")
-    vk_version = '5.95'
-
-    url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
-    #print(url_request)
-    response = requests.get(url_request)
-    return response.json()
-
-
 def get_address_upload_photos():
     '''
     Get address to upload photos
@@ -93,7 +79,7 @@ def upload_photo_to_server(url, img_path):
 
 def save_wall_photo(photo_on_server):
     '''
-    __
+    Save photo on server to prepare for post.
     '''
     method_name = 'photos.saveWallPhoto'
     token = os.getenv("TOKEN")
@@ -105,14 +91,13 @@ def save_wall_photo(photo_on_server):
     parameters = f'group_id={group_id}&photo={photo}&hash={hash}&server={server}'
 
     url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
-    #print(url_request)
     response = requests.post(url_request)
     return response.json()
 
 
 def post_wall_photo(owner_id, media_id, message):
     '''
-    __
+    Post picture with title on the wall vk community.
     '''
     method_name = 'wall.post'
     token = os.getenv("TOKEN")
@@ -128,8 +113,6 @@ def post_wall_photo(owner_id, media_id, message):
 
 
 def main():
-    print('Script started.')
-
     #Get information about last issue comics
     last_comics_num = get_xkcd_comics_info()['num']
     comics_info = get_xkcd_comics_info(random.randrange(1,last_comics_num))
