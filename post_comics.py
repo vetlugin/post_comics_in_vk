@@ -1,7 +1,9 @@
 import os
 import requests
 import re
+import random
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -121,25 +123,6 @@ def post_wall_photo(owner_id, media_id, message):
 
     parameters = f'group_id={group_id}&owner_id=-{group_id}&attachments={attachments}&message={message}'
     url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
-    print(attachments)
-    print(parameters)
-    print(url_request)
-    response = requests.post(url_request)
-    return response.json()
-
-
-def create_album(title):
-    '''
-    __
-    '''
-    method_name = 'photos.createAlbum'
-    token = os.getenv("TOKEN")
-    vk_version = '5.95'
-    group_id='181623583'
-
-    parameters = f'title={title}&group_id={group_id}'
-    url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
-
     response = requests.post(url_request)
     return response.json()
 
@@ -148,7 +131,8 @@ def main():
     print('Script started.')
 
     #Get information about last issue comics
-    comics_info = get_xkcd_comics_info()
+    last_comics_num = get_xkcd_comics_info()['num']
+    comics_info = get_xkcd_comics_info(random.randrange(1,last_comics_num))
     comics_url = comics_info['img']
     comics_alt = comics_info['alt']
 
@@ -167,7 +151,11 @@ def main():
     media_id = save_wall_response['response'][0]['id']
     owner_id = save_wall_response['response'][0]['owner_id']
     post_wall_photo(owner_id, media_id, comics_alt)
-    #create_album('urrra!')
+
+    try:
+        os.remove(img_local_full_path)
+    except OSError as e:  ## if failed, report it back to the user ##
+        print ("Error: %s - %s." % (e.filename, e.strerror))
 
 if __name__ == '__main__':
     main()
