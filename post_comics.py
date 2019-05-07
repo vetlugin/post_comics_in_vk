@@ -133,13 +133,11 @@ def post_wall_photo(owner_id, media_id, message):
 
 
 def upload_and_post_wall_vk(img_local_full_path,comics_title):
-    # Get url on server to upload picture
+
     img_upload_url = get_address_upload_photos()
 
-    # Upload picture to img_upload_url from img_local_full_path
     photo_on_server = upload_photo_to_server(img_upload_url, img_local_full_path)
 
-    #Post uploaded pictures on the wall of the group
     save_wall_response = save_wall_photo(photo_on_server)
 
     media_id = save_wall_response['response'][0]['id']
