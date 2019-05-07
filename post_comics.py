@@ -6,6 +6,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+token = os.getenv("TOKEN")
+group_id=os.getenv("GROUP_ID")
+vk_version = '5.95'
+
 
 def get_xkcd_comics_info(issue_id = None):
     '''
@@ -22,8 +26,8 @@ def get_xkcd_comics_info(issue_id = None):
     else:
         api_path = 'https://xkcd.com/info.0.json'
 
-    response = requests.get(api_path).json()
-    return response
+    response = requests.get(api_path)
+    return response.json()
 
 
 def download_picture(img_url, img_dir = '.'):
@@ -54,13 +58,14 @@ def get_address_upload_photos():
     Get address to upload photos
     '''
     method_name = 'photos.getWallUploadServer'
-    token = os.getenv("TOKEN")
-    vk_version = '5.95'
-    group_id='181623583'
-    parameters = f'group_id={group_id}'
+    payload = {
+        'group_id': group_id,
+        'access_token': token,
+        'v': vk_version,
+    }
+    url = f'https://api.vk.com/method/{method_name}'
+    response = requests.get(url, params=payload)
 
-    url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
-    response = requests.get(url_request)
     return response.json()['response']['upload_url']
 
 
@@ -82,16 +87,17 @@ def save_wall_photo(photo_on_server):
     Save photo on server to prepare for post.
     '''
     method_name = 'photos.saveWallPhoto'
-    token = os.getenv("TOKEN")
-    vk_version = '5.95'
-    group_id='181623583'
-    photo = photo_on_server['photo']
-    hash = photo_on_server['hash']
-    server = photo_on_server['server']
-    parameters = f'group_id={group_id}&photo={photo}&hash={hash}&server={server}'
+    payload = {
+        'group_id': group_id,
+        'photo': photo_on_server['photo'],
+        'hash': photo_on_server['hash'],
+        'server': photo_on_server['server'],
+        'access_token': token,
+        'v': vk_version,
+        }
+    url = f'https://api.vk.com/method/{method_name}'
+    response = requests.get(url, params=payload)
 
-    url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
-    response = requests.post(url_request)
     return response.json()
 
 
@@ -100,15 +106,17 @@ def post_wall_photo(owner_id, media_id, message):
     Post picture with title on the wall vk community.
     '''
     method_name = 'wall.post'
-    token = os.getenv("TOKEN")
-    vk_version = '5.95'
-    group_id='181623583'
+    payload = {
+        'group_id': group_id,
+        'owner_id':f'-{group_id}',
+        'attachments':f'photo{owner_id}_{media_id}',
+        'message': message,
+        'access_token': token,
+        'v': vk_version,
+        }
+    url = f'https://api.vk.com/method/{method_name}'
+    response = requests.get(url, params=payload)
 
-    attachments = f"photo{owner_id}_{media_id}"
-
-    parameters = f'group_id={group_id}&owner_id=-{group_id}&attachments={attachments}&message={message}'
-    url_request = f'https://api.vk.com/method/{method_name}?{parameters}&access_token={token}&v={vk_version}'
-    response = requests.post(url_request)
     return response.json()
 
 
