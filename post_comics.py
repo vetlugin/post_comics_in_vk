@@ -53,6 +53,18 @@ def download_picture(img_url, img_dir = '.'):
     return img_local_full_path
 
 
+def get_random_xkcd_comics():
+    #Get information about last issue comics
+    last_comics_num = get_xkcd_comics_info()['num']
+    comics_info = get_xkcd_comics_info(random.randrange(1,last_comics_num))
+    comics_url = comics_info['img']
+    comics_alt = comics_info['alt']
+
+    # Download image to file with img_local_full_path address
+    img_local_full_path = download_picture(comics_url)
+    return {'title': comics_alt, 'path': img_local_full_path}
+
+
 def get_address_upload_photos():
     '''
     Get address to upload photos
@@ -130,14 +142,9 @@ def delete_local_file(path):
 def main():
 
 #Скачать комикс с xkcd
-    #Get information about last issue comics
-    last_comics_num = get_xkcd_comics_info()['num']
-    comics_info = get_xkcd_comics_info(random.randrange(1,last_comics_num))
-    comics_url = comics_info['img']
-    comics_alt = comics_info['alt']
-
-    # Download image to file with img_local_full_path address
-    img_local_full_path = download_picture(comics_url)
+    random_comics_info = get_random_xkcd_comics()
+    img_local_full_path = random_comics_info['path']
+    comics_title = random_comics_info['title']
 
 #Загрузить комикс в ВК
     # Get url on server to upload picture
@@ -151,7 +158,7 @@ def main():
 
     media_id = save_wall_response['response'][0]['id']
     owner_id = save_wall_response['response'][0]['owner_id']
-    post_wall_photo(owner_id, media_id, comics_alt)
+    post_wall_photo(owner_id, media_id, comics_title)
 
 #Удалить файл с комиксом
     delete_local_file(img_local_full_path)
