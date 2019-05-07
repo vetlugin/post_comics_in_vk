@@ -132,21 +132,7 @@ def post_wall_photo(owner_id, media_id, message):
     return response.json()
 
 
-def delete_local_file(path):
-    try:
-        os.remove(path)
-    except OSError as e:  ## if failed, report it back to the user ##
-        print ("Error: %s - %s." % (e.filename, e.strerror))
-
-
-def main():
-
-#Скачать комикс с xkcd
-    random_comics_info = get_random_xkcd_comics()
-    img_local_full_path = random_comics_info['path']
-    comics_title = random_comics_info['title']
-
-#Загрузить комикс в ВК
+def upload_and_post_wall_vk(img_local_full_path,comics_title):
     # Get url on server to upload picture
     img_upload_url = get_address_upload_photos()
 
@@ -159,6 +145,23 @@ def main():
     media_id = save_wall_response['response'][0]['id']
     owner_id = save_wall_response['response'][0]['owner_id']
     post_wall_photo(owner_id, media_id, comics_title)
+
+
+def delete_local_file(path):
+    try:
+        os.remove(path)
+    except OSError as e:  ## if failed, report it back to the user ##
+        print ("Error: %s - %s." % (e.filename, e.strerror))
+
+
+def main():
+#Скачать комикс с xkcd
+    random_comics_info = get_random_xkcd_comics()
+    img_local_full_path = random_comics_info['path']
+    comics_title = random_comics_info['title']
+
+#Загрузить комикс в ВК
+    upload_and_post_wall_vk(img_local_full_path,comics_title)
 
 #Удалить файл с комиксом
     delete_local_file(img_local_full_path)
