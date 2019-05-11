@@ -1,9 +1,7 @@
 import os
 import requests
-#from requests.exceptions import ConnectionError, HTTPError, Timeout
 import random
 from dotenv import load_dotenv
-
 
 load_dotenv()
 
@@ -41,8 +39,7 @@ def get_xkcd_comics_info(issue_id = None):
 
 
 def download_picture(img_url, img_dir = '.'):
-    '''
-    Function download pictures from url to local directory.
+    '''Function download pictures from url to local directory.
     Create directory if it no exist.
 
     Keywords arguments:
@@ -50,8 +47,7 @@ def download_picture(img_url, img_dir = '.'):
     img_name -- name of picture
     img_dir -- local directory for picture dowload
 
-    Return img_local_full_path
-    '''
+    Return img_local_full_path'''
     #os.makedirs(img_dir, exist_ok=True)
     img_name = os.path.basename(img_url)
 
@@ -93,9 +89,7 @@ def get_random_xkcd_comics():
 
 
 def get_address_upload_photos():
-    '''
-    Get address to upload photos
-    '''
+    '''Get address to upload photos'''
     method_name = 'photos.getWallUploadServer'
     payload = {
         'group_id': GROUP_ID,
@@ -105,6 +99,8 @@ def get_address_upload_photos():
     url = f'https://api.vk.com/method/{method_name}'
     try:
         response = requests.get(url, params=payload)
+        if not response.ok:
+            return
         if response.json().get('error'):
             raise requests.HTTPError('VK-Response error is raised.')
         else:
@@ -129,6 +125,8 @@ def upload_photo_to_server(url, img_path):
 
     try:
         response = requests.post(url, files=files)
+        if not response.ok:
+            return
         if response.json().get('error'):
             raise requests.HTTPError('VK-Response error is raised.')
         else:
@@ -143,26 +141,27 @@ def upload_photo_to_server(url, img_path):
         print(f'Unexpected error is raised. {str(e)}')
         return
 
+
 def save_wall_photo(photo_on_server):
-    '''
-    Save photo on server to prepare for post.
-    '''
+    '''Save photo on server to prepare for post.'''
     method_name = 'photos.saveWallPhoto'
     payload = {
-        'group_id': group_id,
+        'group_id': GROUP_ID,
         'photo': photo_on_server['photo'],
         'hash': photo_on_server['hash'],
         'server': photo_on_server['server'],
-        'access_token': token,
-        'v': vk_version,
+        'access_token': TOKEN,
+        'v': VK_VERSION,
         }
     url = f'https://api.vk.com/method/{method_name}'
     try:
         response = requests.get(url, params=payload)
+        if not response.ok:
+            return
         if response.json().get('error'):
             raise requests.HTTPError('VK-Response error is raised.')
         else:
-            return response.json()['response']['upload_url']
+            return response.json()
     except requests.ConnectionError:
         print('Connection Error is raised. Make sure you are connected to Internet.')
         return
@@ -175,25 +174,25 @@ def save_wall_photo(photo_on_server):
 
 
 def post_wall_photo(owner_id, media_id, message):
-    '''
-    Post picture with title on the wall vk community.
-    '''
+    '''Post picture with title on the wall vk community.'''
     method_name = 'wall.post'
     payload = {
-        'group_id': group_id,
-        'owner_id':f'-{group_id}',
+        'group_id': GROUP_ID,
+        'owner_id':f'-{GROUP_ID}',
         'attachments':f'photo{owner_id}_{media_id}',
         'message': message,
-        'access_token': token,
-        'v': vk_version,
+        'access_token': TOKEN,
+        'v': VK_VERSION,
         }
-    url = f'https://api.vk.com/method/{method_name}-'
+    url = f'https://api.vk.com/method/{method_name}'
     try:
         response = requests.get(url, params=payload)
+        if response.ok:
+            return
         if response.json().get('error'):
             raise requests.HTTPError('VK-Response error is raised.')
         else:
-            return response.json()['response']['upload_url']
+            return response.json()
     except requests.ConnectionError:
         print('Connection Error is raised. Make sure you are connected to Internet.')
         return
@@ -206,11 +205,13 @@ def post_wall_photo(owner_id, media_id, message):
 
 
 def upload_and_post_wall_vk(img_local_full_path,comics_title):
-
+    # Get url on server to upload picture
     img_upload_url = get_address_upload_photos()
 
+    # Upload picture to img_upload_url from img_local_full_path
     photo_on_server = upload_photo_to_server(img_upload_url, img_local_full_path)
 
+    #Post uploaded pictures on the wall of the group
     save_wall_response = save_wall_photo(photo_on_server)
 
     media_id = save_wall_response['response'][0]['id']
@@ -222,7 +223,7 @@ def delete_local_file(path):
     try:
         os.remove(path)
     except OSError as e:  ## if failed, report it back to the user ##
-        print (f'Error: {e.filename} - {e.strerror}.')
+        print ("Error: %s - %s." % (e.filename, e.strerror))
 
 
 def main():
@@ -231,7 +232,6 @@ def main():
     comics_title = random_comics_info['title']
 
     upload_and_post_wall_vk(img_local_full_path,comics_title)
-
     delete_local_file(img_local_full_path)
 
 
