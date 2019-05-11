@@ -236,5 +236,4 @@ def main():
 
 
 if __name__ == '__main__':
-#    main()
-    get_address_upload_photos()
+    main()
