@@ -3,8 +3,6 @@ import requests
 import random
 from dotenv import load_dotenv
 
-load_dotenv()
-
 TOKEN=os.getenv("TOKEN")
 GROUP_ID=os.getenv("GROUP_ID")
 VK_VERSION='5.95'
@@ -236,4 +234,5 @@ def main():
 
 
 if __name__ == '__main__':
+    load_dotenv()
     main()
