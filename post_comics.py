@@ -25,14 +25,16 @@ def get_xkcd_comics_info(issue_id = None):
             return response.json()
         else:
             return
-    except requests.ConnectionError as e:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
+    # В этом месте не проще ли тогда вообще наптсать просто:
+    #except:
+    #    return
+    # Разницы то получается никакой нет? Даже так лучше потому что отловятся все ошибки,
+    # а с другой стороны не рекоммендуют же бездумно вылавливать все ошибки?
+    except requests.ConnectionError:
         return
     except requests.Timeout:
-        print('Timeout Error is raised.')
         return
-    except requests.RequestException as e:
-        print(f'Unexpected error is raised. {str(e)}')
+    except requests.RequestException:
         return
 
 
@@ -58,19 +60,15 @@ def download_picture(img_url, img_dir = '.'):
             file.write(response.content)
         return img_local_full_path
 
-    except requests.ConnectionError as e:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
+    except requests.ConnectionError:
         return
     except requests.Timeout:
-        print('Timeout Error is raised.')
         return
-    except requests.RequestException as e:
-        print(f'Unexpected Request error is raised. {str(e)}')
+    except requests.RequestException:
         return
-    except OSError as e:  ## if failed, report it back to the user ##
-        print (f'Error: {e.filename} - {e.strerror}.')
-    except Exception as e:
-        print(f'Unexpected error is raised. {str(e)}')
+    except OSError:
+        return
+    except Exception:
         return
 
 
@@ -104,20 +102,15 @@ def get_address_upload_photos():
         else:
             return response.json()['response']['upload_url']
     except requests.ConnectionError:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
         return
     except requests.Timeout:
-        print('Timeout Error is raised.')
         return
     except requests.RequestException as e:
-        print(f'Unexpected error is raised. {str(e)}')
         return
 
 
 def upload_photo_to_server(url, img_path):
-    '''
-    Upload photo to server.
-    '''
+    '''Upload photo to server.'''
     open_file = open(img_path, 'rb')
     files = {'file': open_file}
 
@@ -130,13 +123,10 @@ def upload_photo_to_server(url, img_path):
         else:
             return response.json()
     except requests.ConnectionError:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
         return
     except requests.Timeout:
-        print('Timeout Error is raised.')
         return
     except requests.RequestException as e:
-        print(f'Unexpected error is raised. {str(e)}')
         return
 
 
@@ -161,13 +151,10 @@ def save_wall_photo(photo_on_server):
         else:
             return response.json()
     except requests.ConnectionError:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
         return
     except requests.Timeout:
-        print('Timeout Error is raised.')
         return
     except requests.RequestException as e:
-        print(f'Unexpected error is raised. {str(e)}')
         return
 
 
@@ -192,13 +179,10 @@ def post_wall_photo(owner_id, media_id, message):
         else:
             return response.json()
     except requests.ConnectionError:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
         return
     except requests.Timeout:
-        print('Timeout Error is raised.')
         return
     except requests.RequestException as e:
-        print(f'Unexpected error is raised. {str(e)}')
         return
 
 
