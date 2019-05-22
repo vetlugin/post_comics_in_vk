@@ -3,6 +3,9 @@ import requests
 import random
 from dotenv import load_dotenv
 
+#тут load_dotenv работает
+load_dotenv()
+
 TOKEN=os.getenv("TOKEN")
 GROUP_ID=os.getenv("GROUP_ID")
 VK_VERSION='5.95'
@@ -19,20 +22,11 @@ def get_xkcd_comics_info(issue_id = None):
         url_path = f'https://xkcd.com/{issue_id}/info.0.json'
     else:
         url_path = 'https://xkcd.com/info.0.json'
-    try:
-        response = requests.get(url_path)
-        if response.ok:
-            return response.json()
-        else:
-            return
-    except requests.ConnectionError as e:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
-        return
-    except requests.Timeout:
-        print('Timeout Error is raised.')
-        return
-    except requests.RequestException as e:
-        print(f'Unexpected error is raised. {str(e)}')
+
+    response = requests.get(url_path)
+    if response.ok:
+        return response.json()
+    else:
         return
 
 
@@ -53,25 +47,12 @@ def download_picture(img_url, img_dir = '.'):
 
     try:
         response = requests.get(img_url)
-
         with open(img_local_full_path, 'wb') as file:
             file.write(response.content)
         return img_local_full_path
 
-    except requests.ConnectionError as e:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
-        return
-    except requests.Timeout:
-        print('Timeout Error is raised.')
-        return
-    except requests.RequestException as e:
-        print(f'Unexpected Request error is raised. {str(e)}')
-        return
     except OSError as e:  ## if failed, report it back to the user ##
         print (f'Error: {e.filename} - {e.strerror}.')
-    except Exception as e:
-        print(f'Unexpected error is raised. {str(e)}')
-        return
 
 
 def get_random_xkcd_comics():
@@ -95,49 +76,29 @@ def get_address_upload_photos():
         'v': VK_VERSION,
     }
     url = f'https://api.vk.com/method/{method_name}'
-    try:
-        response = requests.get(url, params=payload)
-        if not response.ok:
-            return
-        if response.json().get('error'):
-            raise requests.HTTPError('VK-Response error is raised.')
-        else:
-            return response.json()['response']['upload_url']
-    except requests.ConnectionError:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
+    response = requests.get(url, params=payload)
+    if not response.ok:
         return
-    except requests.Timeout:
-        print('Timeout Error is raised.')
-        return
-    except requests.RequestException as e:
-        print(f'Unexpected error is raised. {str(e)}')
-        return
+    if response.json().get('error'):
+        error_msg = response.json()['error']['error_msg']
+        raise requests.HTTPError(f'The get_address_upload_photos function raised the error: {error_msg}')
+    else:
+        return response.json()['response']['upload_url']
 
 
 def upload_photo_to_server(url, img_path):
-    '''
-    Upload photo to server.
-    '''
+    '''Upload photo to server.'''
     open_file = open(img_path, 'rb')
     files = {'file': open_file}
 
-    try:
-        response = requests.post(url, files=files)
-        if not response.ok:
-            return
-        if response.json().get('error'):
-            raise requests.HTTPError('VK-Response error is raised.')
-        else:
-            return response.json()
-    except requests.ConnectionError:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
+    response = requests.post(url, files=files)
+    if not response.ok:
         return
-    except requests.Timeout:
-        print('Timeout Error is raised.')
-        return
-    except requests.RequestException as e:
-        print(f'Unexpected error is raised. {str(e)}')
-        return
+    if response.json().get('error'):
+        error_msg = response.json()['error']['error_msg']
+        raise requests.HTTPError(f'The upload_photo_to_server function raised the error: {error_msg}')
+    else:
+        return response.json()
 
 
 def save_wall_photo(photo_on_server):
@@ -152,23 +113,14 @@ def save_wall_photo(photo_on_server):
         'v': VK_VERSION,
         }
     url = f'https://api.vk.com/method/{method_name}'
-    try:
-        response = requests.get(url, params=payload)
-        if not response.ok:
-            return
-        if response.json().get('error'):
-            raise requests.HTTPError('VK-Response error is raised.')
-        else:
-            return response.json()
-    except requests.ConnectionError:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
+    response = requests.get(url, params=payload)
+    if not response.ok:
         return
-    except requests.Timeout:
-        print('Timeout Error is raised.')
-        return
-    except requests.RequestException as e:
-        print(f'Unexpected error is raised. {str(e)}')
-        return
+    if response.json().get('error'):
+        error_msg = response.json()['error']['error_msg']
+        raise requests.HTTPError(f'The save_wall_photo function raised the error: {error_msg}')
+    else:
+        return response.json()
 
 
 def post_wall_photo(owner_id, media_id, message):
@@ -183,23 +135,14 @@ def post_wall_photo(owner_id, media_id, message):
         'v': VK_VERSION,
         }
     url = f'https://api.vk.com/method/{method_name}'
-    try:
-        response = requests.get(url, params=payload)
-        if response.ok:
-            return
-        if response.json().get('error'):
-            raise requests.HTTPError('VK-Response error is raised.')
-        else:
-            return response.json()
-    except requests.ConnectionError:
-        print('Connection Error is raised. Make sure you are connected to Internet.')
+    response = requests.get(url, params=payload)
+    if not response.ok:
         return
-    except requests.Timeout:
-        print('Timeout Error is raised.')
-        return
-    except requests.RequestException as e:
-        print(f'Unexpected error is raised. {str(e)}')
-        return
+    if response.json().get('error'):
+        error_msg = response.json()['error']['error_msg']
+        raise requests.HTTPError(f'The post_wall_photo function raised the error: {error_msg}')
+    else:
+        return response.json()
 
 
 def upload_and_post_wall_vk(img_local_full_path,comics_title):
@@ -211,7 +154,6 @@ def upload_and_post_wall_vk(img_local_full_path,comics_title):
 
     #Post uploaded pictures on the wall of the group
     save_wall_response = save_wall_photo(photo_on_server)
-
     media_id = save_wall_response['response'][0]['id']
     owner_id = save_wall_response['response'][0]['owner_id']
     post_wall_photo(owner_id, media_id, comics_title)
@@ -225,14 +167,19 @@ def delete_local_file(path):
 
 
 def main():
-    random_comics_info = get_random_xkcd_comics()
-    img_local_full_path = random_comics_info['path']
-    comics_title = random_comics_info['title']
+    try:
+        random_comics_info = get_random_xkcd_comics()
 
-    upload_and_post_wall_vk(img_local_full_path,comics_title)
-    delete_local_file(img_local_full_path)
+        img_local_full_path = random_comics_info['path']
+        comics_title = random_comics_info['title']
+        upload_and_post_wall_vk(img_local_full_path,comics_title)
 
+        delete_local_file(img_local_full_path)
+    except Exception as error:
+        print(error)
+        return
 
 if __name__ == '__main__':
-    load_dotenv()
+    #тут load_dotenv не работает
+    #load_dotenv()
     main()
